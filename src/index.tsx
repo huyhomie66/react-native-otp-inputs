@@ -1,4 +1,4 @@
-import React, { PureComponent, ReactNode, RefObject } from 'react'
+import React, { PureComponent, ReactNode, RefObject } from "react";
 import {
   Clipboard,
   Keyboard,
@@ -8,158 +8,180 @@ import {
   TextInputKeyPressEventData,
   TextStyle,
   View,
-  ViewStyle,
-} from 'react-native'
+  ViewStyle
+} from "react-native";
 
-import OtpInput from './OtpInput'
-import defaultStyles from './defaultStyles'
+import OtpInput from "./OtpInput";
+import defaultStyles from "./defaultStyles";
 
 interface Props {
-  autoCapitalize: 'none' | 'sentences' | 'words' | 'characters'
-  clearTextOnFocus: boolean
-  containerStyles?: StyleProp<ViewStyle>
-  errorMessage?: string
-  errorMessageContainerStyles?: StyleProp<ViewStyle>
-  errorMessageTextStyles?: StyleProp<TextStyle>
-  focusedBorderColor: string
-  focusStyles?: StyleProp<ViewStyle>
-  handleChange: (otpCode: string) => void
-  inputContainerStyles?: StyleProp<ViewStyle>
-  inputsContainerStyles?: StyleProp<ViewStyle>
-  inputStyles?: StyleProp<TextStyle>
-  inputTextErrorColor: string
-  keyboardType: 'default' | 'email-address' | 'numeric' | 'phone-pad'
-  numberOfInputs: number
-  secureTextEntry: boolean
-  selectTextOnFocus: boolean
-  testIDPrefix: string
-  unfocusedBorderColor: string
+  autoCapitalize: "none" | "sentences" | "words" | "characters";
+  clearTextOnFocus: boolean;
+  containerStyles?: StyleProp<ViewStyle>;
+  errorMessage?: string;
+  errorMessageContainerStyles?: StyleProp<ViewStyle>;
+  errorMessageTextStyles?: StyleProp<TextStyle>;
+  focusedBorderColor: string;
+  focusStyles?: StyleProp<ViewStyle>;
+  handleChange: (otpCode: string) => void;
+  inputContainerStyles?: StyleProp<ViewStyle>;
+  inputsContainerStyles?: StyleProp<ViewStyle>;
+  inputStyles?: StyleProp<TextStyle>;
+  inputTextErrorColor: string;
+  keyboardType: "default" | "email-address" | "numeric" | "phone-pad";
+  numberOfInputs: number;
+  secureTextEntry: boolean;
+  selectTextOnFocus: boolean;
+  testIDPrefix: string;
+  unfocusedBorderColor: string;
+  value?: string;
 }
 
 interface State {
-  loading: boolean
-  otpCode: Array<string>
-  previousCopiedText: string
+  loading: boolean;
+  otpCode: Array<string>;
+  previousCopiedText: string;
 }
 
 type TextInputOnChangeEventData = {
-  nativeEvent: TextInputChangeEventData
-}
+  nativeEvent: TextInputChangeEventData;
+};
 
 type TextInputOnKeyPressEventData = {
-  nativeEvent: TextInputKeyPressEventData
-}
+  nativeEvent: TextInputKeyPressEventData;
+};
 
-const MINIMAL_INDEX = 0
+const MINIMAL_INDEX = 0;
 
 export default class OtpInputs extends PureComponent<Props, State> {
   static defaultProps = {
-    autoCapitalize: 'none',
+    autoCapitalize: "none",
     clearTextOnFocus: false,
-    focusedBorderColor: '#0000ff',
+    focusedBorderColor: "#0000ff",
     handleChange: console.log,
-    inputTextErrorColor: '#ff0000',
-    keyboardType: 'phone-pad',
+    inputTextErrorColor: "#ff0000",
+    keyboardType: "phone-pad",
     numberOfInputs: 4,
     secureTextEntry: false,
     selectTextOnFocus: true,
-    unfocusedBorderColor: '#a0a0a0',
-    testIDPrefix: 'otpInput',
-  }
+    unfocusedBorderColor: "#a0a0a0",
+    testIDPrefix: "otpInput"
+  };
 
-  public inputs: RefObject<OtpInput>[]
-  private _interval: any
+  public inputs: RefObject<OtpInput>[];
+  private _interval: any;
 
   constructor(props: Props) {
-    super(props)
+    super(props);
 
-    const inputs = []
+    const inputs = [];
 
     for (let index = 0; index < this.props.numberOfInputs; index++) {
-      inputs[index] = React.createRef()
+      inputs[index] = React.createRef();
     }
 
-    this._interval = null
-    this.inputs = inputs as Array<RefObject<OtpInput>>
+    this._interval = null;
+    this.inputs = inputs as Array<RefObject<OtpInput>>;
     this.state = {
       loading: false,
-      previousCopiedText: '',
-      otpCode: [],
-    }
+      previousCopiedText: "",
+      otpCode: []
+    };
   }
 
+  public componentDidUpdate = (prevProps, prevState) => {
+    if (this.props.value != prevProps.value) {
+      this.setState({
+        otpCode: value.split("")
+      });
+    }
+  };
+
   public componentDidMount(): void {
-    this._listenOnCopiedText()
+    this._listenOnCopiedText();
 
     this._interval = setInterval(() => {
-      this._listenOnCopiedText()
-    }, 1000)
+      this._listenOnCopiedText();
+    }, 1000);
   }
 
   public componentWillUnmount(): void {
-    clearInterval(this._interval)
+    clearInterval(this._interval);
   }
 
   private _listenOnCopiedText = async (): Promise<void> => {
-    const copiedText = await Clipboard.getString()
+    const copiedText = await Clipboard.getString();
 
     if (
       copiedText &&
       copiedText.length === this.props.numberOfInputs &&
-      copiedText !== this.state.otpCode.join('') &&
+      copiedText !== this.state.otpCode.join("") &&
       copiedText !== this.state.previousCopiedText
     ) {
-      this._handleAfterOtpAction(copiedText.split(''), this.props.numberOfInputs, true)
+      this._handleAfterOtpAction(
+        copiedText.split(""),
+        this.props.numberOfInputs,
+        true
+      );
     }
-  }
+  };
 
   private _handleAfterOtpAction = (
     otpCode: Array<string>,
     indexToFocus: number,
-    fromClipboard?: boolean,
+    fromClipboard?: boolean
   ): void => {
-    const { handleChange, numberOfInputs } = this.props
-    handleChange(otpCode.join(''))
+    const { handleChange, numberOfInputs } = this.props;
+    handleChange(otpCode.join(""));
 
-    this.setState({ otpCode, ...(fromClipboard && { previousCopiedText: otpCode.join('') }) })
+    this.setState({
+      otpCode,
+      ...(fromClipboard && { previousCopiedText: otpCode.join("") })
+    });
 
     if (indexToFocus === numberOfInputs) {
-      return Keyboard.dismiss()
+      return Keyboard.dismiss();
     }
 
     if (indexToFocus >= MINIMAL_INDEX && indexToFocus < numberOfInputs) {
-      this._focusInput(indexToFocus)
+      this._focusInput(indexToFocus);
     }
-  }
+  };
 
-  private _updateText = (event: TextInputOnChangeEventData, index: number): void => {
-    let { text } = event.nativeEvent
+  private _updateText = (
+    event: TextInputOnChangeEventData,
+    index: number
+  ): void => {
+    let { text } = event.nativeEvent;
 
     if (text) {
-      let otpArray = this.state.otpCode
-      otpArray[index] = text[text.length - 1]
-      this._handleAfterOtpAction(otpArray, index + 1)
+      let otpArray = this.state.otpCode;
+      otpArray[index] = text[text.length - 1];
+      this._handleAfterOtpAction(otpArray, index + 1);
     }
-  }
+  };
 
-  private _handleBackspace = (event: TextInputOnKeyPressEventData, index: number): void => {
-    if (event.nativeEvent.key === 'Backspace') {
-      const { handleChange, numberOfInputs } = this.props
-      const otpCode = this.state.otpCode
-      otpCode[index] = ''
+  private _handleBackspace = (
+    event: TextInputOnKeyPressEventData,
+    index: number
+  ): void => {
+    if (event.nativeEvent.key === "Backspace") {
+      const { handleChange, numberOfInputs } = this.props;
+      const otpCode = this.state.otpCode;
+      otpCode[index] = "";
 
-      handleChange(otpCode.join(''))
-      this.setState({ otpCode })
+      handleChange(otpCode.join(""));
+      this.setState({ otpCode });
 
       if (index > MINIMAL_INDEX && index < numberOfInputs) {
-        this._focusInput(index - 1)
+        this._focusInput(index - 1);
       }
     }
-  }
+  };
 
   private _focusInput = (index: number): void => {
-    this.inputs[index].current.focus()
-  }
+    this.inputs[index].current.focus();
+  };
 
   private _renderInputs = (): Array<JSX.Element> => {
     const {
@@ -176,10 +198,10 @@ export default class OtpInputs extends PureComponent<Props, State> {
       secureTextEntry,
       selectTextOnFocus,
       testIDPrefix,
-      unfocusedBorderColor,
-    } = this.props
-    const { otpCode } = this.state
-    const iterationArray = Array<number>(numberOfInputs).fill(0)
+      unfocusedBorderColor
+    } = this.props;
+    const { otpCode } = this.state;
+    const iterationArray = Array<number>(numberOfInputs).fill(0);
 
     return iterationArray.map((_, index) => (
       <OtpInput
@@ -200,12 +222,14 @@ export default class OtpInputs extends PureComponent<Props, State> {
         selectTextOnFocus={selectTextOnFocus}
         textErrorColor={inputTextErrorColor}
         unfocusedBorderColor={unfocusedBorderColor}
-        updateText={(event: TextInputOnChangeEventData) => this._updateText(event, index)}
+        updateText={(event: TextInputOnChangeEventData) =>
+          this._updateText(event, index)
+        }
         value={otpCode[index]}
         testID={`${testIDPrefix}-${index}`}
       />
-    ))
-  }
+    ));
+  };
 
   public render(): ReactNode {
     const {
@@ -213,13 +237,18 @@ export default class OtpInputs extends PureComponent<Props, State> {
       errorMessage,
       errorMessageContainerStyles,
       errorMessageTextStyles,
-      inputsContainerStyles,
-    } = this.props
+      inputsContainerStyles
+    } = this.props;
 
     return (
       <View style={[defaultStyles.container, containerStyles]}>
         {errorMessage && (
-          <View style={[defaultStyles.errorMessageContainer, errorMessageContainerStyles]}>
+          <View
+            style={[
+              defaultStyles.errorMessageContainer,
+              errorMessageContainerStyles
+            ]}
+          >
             <Text testID="errorText" style={errorMessageTextStyles}>
               {errorMessage}
             </Text>
@@ -229,6 +258,6 @@ export default class OtpInputs extends PureComponent<Props, State> {
           {this._renderInputs()}
         </View>
       </View>
-    )
+    );
   }
 }
