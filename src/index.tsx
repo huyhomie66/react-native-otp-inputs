@@ -89,10 +89,10 @@ export default class OtpInputs extends PureComponent<Props, State> {
     };
   }
 
-  public componentDidUpdate = (prevProps, prevState) => {
+  public componentDidUpdate = (prevProps: any) => {
     if (this.props.value != prevProps.value) {
       this.setState({
-        otpCode: value.split("")
+        otpCode: this.props.value.split("")
       });
     }
   };
